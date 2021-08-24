@@ -8,6 +8,9 @@ def tanh(x):
 def tanh_derivative(x):
     return (1+tanh(x))*(1-tanh(x))
 
+#net_arch is network architecture i.e one dimensional array containing the number of dimensions
+#neurons for each layer.
+#for Example [2,2,1] input layer with two neurons
 class neural_net:
     def __init__(self,net_arch):
         self.activation_function =tanh
@@ -16,13 +19,14 @@ class neural_net:
         self.steps_per_epoch=1000
         self.net_arch=net_arch
         self.weights=[]
+        #random weeight intialization
         for layer in range(len(net_arch)-1):
             w=2*np.random.rand(net_arch[layer] + 1,net_arch[layer + 1])-1
             self.weights.append(w)
 
 
     def fit(self,data,labels,learning_rate=0.1,epochs=10):
-        ones=np.ones((1,data.shape[0]))
+        ones=np.ones((1,data.shape[0]))#adding bias to the input
         z=np.concatenate((ones.T,data),axis=1)
         training=epochs*self.steps_per_epoch
         for k in range(training):
@@ -31,6 +35,8 @@ class neural_net:
                 for s in data:
                     print(s,nn.predict(s))
 
+        #selecting a random sample from training sset and feed forward through
+        #the network to calculate the error between the network output and target data
         sample=np.random.randint(data.shape[0])
         y=[z[sample]]
 
@@ -39,14 +45,17 @@ class neural_net:
             activation_f=self.activation_function(activation)
             activation_f=np.concatenate((np.ones(1),np.array(activation_f)))
             y.append(activation_f)
-
+        
+        # last layer
         activation=np.dot(y[-1],self.weights[-1])
         activation_f=self.activation_function(activation)
         y.append(activation_f)
 
         error=labels[sample]-y[-1]
         delta_vec=[error*self.activation_derivation_function(y[-1])]
-        for i in range(self.layers -2,0,-1):
+
+        # we need to begin from the back from the next to last layer
+        for i in range(self.layers-2,0,-1):
             error=delta_vec[-1].dot(self.weights[i][1:].T)
             error=error*self.activation_derivation_function(y[i][1:])
             delta_vec.append(error)
